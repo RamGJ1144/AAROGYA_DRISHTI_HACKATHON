@@ -1,0 +1,13 @@
+node_modules/
+.env
+backened/uploads/*
+!backened/uploads/.gitignore
+frentened/build/
+
+__pycache__/
+*.pyc
+.env
+*.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+venv/
