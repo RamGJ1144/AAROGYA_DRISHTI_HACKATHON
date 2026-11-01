@@ -1,7 +1,11 @@
 {
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "migrate": "node backend/db/migrate.js",
+    "reset-passwords": "node backend/sample.js",
+    "client": "npm --prefix frentened start",
+    "install:all": "npm install && npm --prefix frentened install"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

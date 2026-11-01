@@ -14,7 +14,7 @@ function authenticate(req, res, next) {
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET || "fallback_secret"
     );
 
     req.user = decoded;

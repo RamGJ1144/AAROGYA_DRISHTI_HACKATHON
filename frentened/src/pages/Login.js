@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../styles.css";
 
 function Login() {
@@ -136,6 +136,21 @@ function Login() {
           <button className="login-button">
             Sign In →
           </button>
+
+          <button
+            type="button"
+            className="register-button"
+            onClick={() => navigate("/register")}
+          >
+            Register / నమోదు
+          </button>
+
+          {role === "HEALTH_WORKER" && (
+            <p className="register-link">
+              New health worker?{" "}
+              <Link to="/register">Register here / నమోదు చేసుకోండి</Link>
+            </p>
+          )}
 
           {role === "ADMIN" && (
             <div className="notice">

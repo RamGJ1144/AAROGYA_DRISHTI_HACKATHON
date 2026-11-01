@@ -351,3 +351,18 @@ th {
     grid-template-columns: 1fr;
   }
 }
+/* Stage 2 additions */
+.register-button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #0a8f7a;
+  background: #fff;
+  color: #0a8f7a;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.register-link { margin-top: 12px; font-size: 14px; }
+.register-link a { color: #0a8f7a; font-weight: 600; }
+.recent-patients { margin-top: 24px; }

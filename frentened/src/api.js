@@ -18,7 +18,7 @@ export async function apiRequest(url, method = "GET", data = null) {
   }
 
   const response = await fetch(API + url, options);
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     throw new Error(result.message || "Something went wrong");

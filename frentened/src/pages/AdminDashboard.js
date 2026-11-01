@@ -32,6 +32,18 @@ function AdminDashboard() {
     loadUsers();
   }, []);
 
+  async function setStatus(id, status) {
+    try {
+      await apiRequest(`/users/${id}/status`, "PATCH", { status });
+      loadUsers();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  const pending = users.filter(u => u.status === "PENDING");
+  const approved = users.filter(u => u.status === "APPROVED");
+
   async function registerUser(e) {
     e.preventDefault();
 
@@ -82,6 +94,10 @@ function AdminDashboard() {
           + Register User
         </button>
 
+        <button onClick={() => setPage("approvals")}>
+          ✓ Pending Approvals {pending.length > 0 && `(${pending.length})`}
+        </button>
+
         <button onClick={() => setPage("directory")}>
           ♟ User Directory
         </button>
@@ -118,12 +134,12 @@ function AdminDashboard() {
 
               <div className="stat-card">
                 <p>Total Users / మొత్తం యూజర్లు</p>
-                <h1>{users.length}</h1>
+                <h1>{approved.length}</h1>
               </div>
 
               <div className="stat-card">
                 <p>Active Accounts / యాక్టివ్</p>
-                <h1>{users.filter(u => u.is_active).length}</h1>
+                <h1>{approved.filter(u => u.is_active !== false).length}</h1>
               </div>
 
               <div className="stat-card">
@@ -132,8 +148,8 @@ function AdminDashboard() {
               </div>
 
               <div className="stat-card">
-                <p>Designations</p>
-                <h1>4</h1>
+                <p>Pending Approvals</p>
+                <h1>{pending.length}</h1>
               </div>
 
             </div>
@@ -227,6 +243,46 @@ function AdminDashboard() {
           </div>
         )}
 
+        {page === "approvals" && (
+          <div className="content-card">
+            <h2>Pending Approvals / ఆమోదం కోసం వేచి ఉన్నవారు</h2>
+
+            {pending.length === 0 ? (
+              <p>No pending registrations.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Phone</th>
+                    <th>Designation</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pending.map(user => (
+                    <tr key={user.id}>
+                      <td>{user.full_name}</td>
+                      <td>{user.username}</td>
+                      <td>{user.phone}</td>
+                      <td>{user.designation}</td>
+                      <td>
+                        <button onClick={() => setStatus(user.id, "APPROVED")}>
+                          Approve
+                        </button>{" "}
+                        <button onClick={() => setStatus(user.id, "REJECTED")}>
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
         {page === "directory" && (
           <div className="content-card">
 
@@ -244,7 +300,7 @@ function AdminDashboard() {
               </thead>
 
               <tbody>
-                {users.map(user => (
+                {approved.map(user => (
                   <tr key={user.id}>
                     <td>{user.full_name}</td>
                     <td>{user.username}</td>

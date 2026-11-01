@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../api";
 import "../styles.css";
 
@@ -7,9 +7,14 @@ function WorkerDashboard() {
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user"));
+  const [searchParams] = useSearchParams();
+  const viewWorker = searchParams.get("worker"); // admin viewing a worker
+  const isAdmin = user?.role === "ADMIN";
 
   const [patients, setPatients] = useState([]);
   const [page, setPage] = useState("dashboard");
+  const [media, setMedia] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -22,24 +27,40 @@ function WorkerDashboard() {
 
   async function loadPatients() {
     try {
-      const data = await apiRequest("/patients");
+      const q = isAdmin && viewWorker ? `?worker=${viewWorker}` : "";
+      const data = await apiRequest("/patients" + q);
       setPatients(data);
     } catch (error) {
       alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadMedia() {
+    try {
+      if (!isAdmin) setMedia(await apiRequest("/media"));
+    } catch (error) {
+      console.error(error);
     }
   }
 
   useEffect(() => {
     loadPatients();
+    loadMedia();
+    // eslint-disable-next-line
   }, []);
 
   async function registerPatient(e) {
     e.preventDefault();
 
     try {
-      await apiRequest("/patients", "POST", form);
+      const saved = await apiRequest("/patients", "POST", form);
 
+      // show instantly, then re-sync with the database
+      setPatients(prev => [saved, ...prev]);
       alert("Patient Registered Successfully!");
+      setPage("dashboard");
 
       setForm({
         full_name: "",
@@ -67,6 +88,8 @@ function WorkerDashboard() {
     try {
       await apiRequest("/media/upload", "POST", data);
       alert("Media Uploaded Successfully!");
+      e.target.value = "";
+      loadMedia();
     } catch (error) {
       alert(error.message);
     }
@@ -76,6 +99,26 @@ function WorkerDashboard() {
     localStorage.clear();
     navigate("/login");
   }
+
+  const patientRows = (list) => list.map(patient => (
+    <tr key={patient.id}>
+      <td>{patient.full_name}</td>
+      <td>{patient.age}</td>
+      <td>{patient.gender}</td>
+      <td>{patient.phone}</td>
+      <td>{patient.village}</td>
+      <td>{patient.health_condition}</td>
+    </tr>
+  ));
+
+  const patientHead = (
+    <thead>
+      <tr>
+        <th>Name</th><th>Age</th><th>Gender</th>
+        <th>Phone</th><th>Village</th><th>Condition</th>
+      </tr>
+    </thead>
+  );
 
   return (
     <div className="dashboard">
@@ -157,6 +200,20 @@ function WorkerDashboard() {
             >
               View Patient Records
             </button>
+
+            <div className="content-card recent-patients">
+              <h2>Patients / పేషెంట్స్ ({patients.length})</h2>
+              {loading ? (
+                <p>Loading...</p>
+              ) : patients.length === 0 ? (
+                <p>No patients registered yet.</p>
+              ) : (
+                <table>
+                  {patientHead}
+                  <tbody>{patientRows(patients)}</tbody>
+                </table>
+              )}
+            </div>
           </>
         )}
 
@@ -227,27 +284,8 @@ function WorkerDashboard() {
             <h2>Patient Directory / పేషెంట్ వివరాలు</h2>
 
             <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Age</th>
-                  <th>Gender</th>
-                  <th>Phone</th>
-                  <th>Village</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {patients.map(patient => (
-                  <tr key={patient.id}>
-                    <td>{patient.full_name}</td>
-                    <td>{patient.age}</td>
-                    <td>{patient.gender}</td>
-                    <td>{patient.phone}</td>
-                    <td>{patient.village}</td>
-                  </tr>
-                ))}
-              </tbody>
+              {patientHead}
+              <tbody>{patientRows(patients)}</tbody>
             </table>
 
           </div>
@@ -271,6 +309,19 @@ function WorkerDashboard() {
               accept="video/*"
               onChange={uploadMedia}
             />
+
+            <h3>Uploaded files</h3>
+            {media.length === 0 ? <p>None yet.</p> : (
+              <ul>
+                {media.map(m => (
+                  <li key={m.id}>
+                    <a href={`http://localhost:5000/${m.file_path}`} target="_blank" rel="noreferrer">
+                      {m.file_name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
 
           </div>
         )}
